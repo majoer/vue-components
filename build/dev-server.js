@@ -26,12 +26,16 @@ var app = express()
 var compiler = webpack(webpackConfig)
 
 var devMiddleware = require('webpack-dev-middleware')(compiler, {
-  publicPath: webpackConfig.output.publicPath,
-  quiet: true
+  publicPath: webpackConfig.output.publicPath, //was publicPath: webpackConfig.output.publicPath,
+    quiet: true,
+    watchOptions: {
+        aggregateTimeout: 300,
+        poll: 1000
+    }
 })
 
 var hotMiddleware = require('webpack-hot-middleware')(compiler, {
-  log: false,
+  log: console.log,
   heartbeat: 2000
 })
 // force page reload when html-webpack-plugin template changes
