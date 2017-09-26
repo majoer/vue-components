@@ -3,11 +3,11 @@
     <div class="dual-slider__knob dual-slider__knob--lower"
       v-on:mousedown="onmousedownLower"
       v-on:change="updateLowerValue"
-      v-bind:style="{ left: getLowerPosition }"></div>
+      v-bind:style="{ left: getLowerPosition }"><span class="dual-slider__knob__text">&lt;</span></div>
     <div class="dual-slider__knob dual-slider__knob--upper"
       v-on:mousedown="onmousedownUpper"
       v-on:change="updateUpperValue"
-      v-bind:style="{ left: getUpperPosition }"></div>
+      v-bind:style="{ left: getUpperPosition }"><span class="dual-slider__knob__text">&gt;</span></div>
   </div>
 </template>
 
@@ -141,11 +141,19 @@
     background: white;
     border: 1px solid black;
     border-radius: 100%;
+    font-size: 14px;
     height: 15px;
     position: absolute;
     top: 50%;
     transform: translate(-50%, -50%);
     width: 15px;
+  }
+
+  .dual-slider__knob__text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
   }
 
   .dual-slider__knob:hover {
