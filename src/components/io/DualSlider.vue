@@ -1,80 +1,128 @@
 <template>
-  <div class="dual-slider" v-on:mouseup="onmouseupSlider">
-    <div class="dual-slider__knob dual-slider__knob--low"
+  <div class="dual-slider" v-on:mouseup="onmouseupSlider" v-on:click.self="onclickSlider">
+    <div class="dual-slider__knob dual-slider__knob--lower"
       v-on:mousedown="onmousedownLower"
+      v-on:change="updateLowerValue"
       v-bind:style="{ left: getLowerPosition }"></div>
-    <div class="dual-slider__knob dual-slider__knob--high"
+    <div class="dual-slider__knob dual-slider__knob--upper"
       v-on:mousedown="onmousedownUpper"
+      v-on:change="updateUpperValue"
       v-bind:style="{ left: getUpperPosition }"></div>
   </div>
 </template>
 
 <script>
+
   export default {
+    props: [ 'min', 'valueLower', 'valueUpper', 'max' ],
     data: () => ({
-      knobLower: { drag: false, value: 0, position: 0, el: undefined },
-      knobUpper: { drag: false, value: 500, position: 100, el: undefined },
+      elSlider: undefined,
+      knobLowerDrag: false,
+      knobUpperDrag: false,
       min: 0,
       max: 1000
     }),
     computed: {
       getLowerPosition() {
-        // let percentage = this.knobLower.value * 100 / this.max - this.min;
-        return `${this.knobLower.position}px`;
+        if (!this.elSlider) {
+          return '0%';
+        }
+
+        let x = 100 / (this.max - this.min) * this.valueLower;
+
+        return `${x}%`;
       },
       getUpperPosition() {
-        // let percentage = this.knobUpper.value * 100 / this.max - this.min;
-        return `${this.knobUpper.position}px`;
+        if (!this.elSlider) {
+          return '100%';
+        }
+
+        let x = 100 / (this.max - this.min) * this.valueUpper;
+
+        return `${x}%`;
       }
     },
     methods: {
       onmouseup(event) {
-        this.knobLower.drag = false;
-        this.knobUpper.drag = false;
+        this.isKnobDragLower = false;
+        this.isKnobDragUpper = false;
         document.removeEventListener('mouseup', this.mouseup);
         document.removeEventListener('mousemove', this.onmousemove);
       },
       onmousemove(event) {
-        if (!this.knobLower.drag && !this.knobUpper.drag) {
+        if (!this.isKnobDragLower && !this.isKnobDragUpper) {
           return;
         }
         event.preventDefault();
         let isSliderTarget = event.target.className === 'dual-slider';
 
-        if (this.knobLower.drag) {
-          let sliderTarget = this.knobLower.el.parentNode;
-          let sliderOffsetLeft = sliderTarget.offsetLeft;
-          let x = event.clientX - sliderOffsetLeft;
-          let min = 0;
-          let max = this.knobUpper.position;
+        if (this.isKnobDragLower) {
+          let newLowerValue = this.calculateValueFromMouseEvent(event);
 
-          if (x >= min && x <= max) {
-            this.knobLower.position = x;
+          if (this.valueLower === newLowerValue) {
+            return;
           }
-        } else if (this.knobUpper.drag) {
-          let sliderTarget = this.knobUpper.el.parentNode;
-          let sliderOffsetLeft = sliderTarget.offsetLeft;
-          let x = event.clientX - sliderOffsetLeft;
-          let min = this.knobLower.position;
-          let max = sliderTarget.clientWidth;
 
-          if (x >= min && x <= max) {
-            this.knobUpper.position = x;
+          if (newLowerValue < this.min) {
+            newLowerValue = this.min;
+          } else if (newLowerValue > this.valueUpper) {
+            newLowerValue = this.valueUpper;
           }
+
+          this.valueLower = newLowerValue;
+          this.$emit('inputLower', this.valueLower);
+        } else if (this.isKnobDragUpper) {
+          let newUpperValue = this.calculateValueFromMouseEvent(event);
+
+          if (this.valueUpper === newUpperValue) {
+            return;
+          }
+
+          if (newUpperValue < this.valueLower) {
+            newUpperValue = this.valueLower;
+          } else if (newUpperValue > this.max) {
+            newUpperValue = this.max;
+          }
+
+          this.valueUpper = newUpperValue;
+          this.$emit('inputUpper', this.valueUpper);
         }
       },
+      calculateValueFromMouseEvent(event) {
+        let sliderWidth = this.elSlider.clientWidth;
+        let sliderOffsetLeft = this.elSlider.offsetLeft;
+        let x = 100 * (event.clientX - sliderOffsetLeft) / sliderWidth;
+
+        return  Math.round(x * (this.max - this.min) / 100);
+      },
       onmousedownLower(event) {
-        this.knobLower.drag = true;
-        this.knobLower.el = event.target;
+        this.isKnobDragLower = true;
         document.addEventListener('mousemove', this.onmousemove);
         document.addEventListener('mouseup', this.onmouseup);
       },
       onmousedownUpper(event) {
-        this.knobUpper.drag = true;
-        this.knobUpper.el = event.target;
+        this.isKnobDragUpper = true;
         document.addEventListener('mousemove', this.onmousemove);
         document.addEventListener('mouseup', this.onmouseup);
+      },
+      onclickSlider(event) {
+        let valueAtMouseClick = this.calculateValueFromMouseEvent(event);
+        let diffLower = Math.abs(this.valueLower - valueAtMouseClick);
+        let diffUpper = Math.abs(this.valueUpper - valueAtMouseClick);
+
+        if (diffLower < diffUpper) {
+          this.valueLower = valueAtMouseClick;
+          this.$emit('inputLower', this.valueLower);
+        } else if (diffLower > diffUpper) {
+          this.valueUpper = valueAtMouseClick;
+          this.$emit('inputUpper', this.valueUpper);
+        }
       }
+    },
+    mounted() {
+      this.elSlider = document.querySelector('.dual-slider');
+      this.elKnobLower = document.querySelector('.dual-slider__knob--lower');
+      this.elKnobUpper = document.querySelector('.dual-slider__knob--upper');
     }
   }
 </script>
@@ -104,12 +152,12 @@
     cursor: grab;
   }
 
-  .dual-slider__knob--low {
+  .dual-slider__knob--lower {
     left: 0%;
     z-index: 0;
   }
 
-  .dual-slider__knob--high {
+  .dual-slider__knob--upper {
     left: 100%;
     z-index: 1;
   }

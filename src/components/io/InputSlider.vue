@@ -1,13 +1,18 @@
 <template>
   <div class="input-slider">
     <div class="input-slider__slider">
-      <DualSlider></DualSlider>
+      <DualSlider v-bind:min="min"
+        v-bind:valueLower="value.lower"
+        v-bind:valueUpper="value.upper"
+        v-bind:max="max"
+        v-on:inputLower="valueLower => value.lower = valueLower"
+        v-on:inputUpper="valueUpper => value.upper = valueUpper"></DualSlider>
     </div>
     <div class="input-slider__input__low">
-      <NumberInput v-bind:min="min" v-bind:current="currentLower" v-bind:max="currentHigher"></NumberInput>
+      <NumberInput v-bind:min="min" v-model="value.lower" v-bind:max="value.upper"></NumberInput>
     </div>
     <div class="input-slider__input__high">
-      <NumberInput v-bind:min="currentLower" v-bind:current="currentHigher" v-bind:max="max"></NumberInput>
+      <NumberInput v-bind:min="value.lower" v-model="value.upper" v-bind:max="max"></NumberInput>
     </div>
   </div>
 </template>
@@ -25,8 +30,10 @@
     },
     data: () => ({
       min: 0,
-      currentLower: 0,
-      currentHigher: 500,
+      value: {
+        lower: 0,
+        upper: 500
+      },
       max: 1000
     })
   }
@@ -34,6 +41,7 @@
 
 <style scoped>
   .input-slider {
+    cursor: pointer;
     display: flex;
     flex-direction: row;
     flex-wrap: wrap;
