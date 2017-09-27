@@ -134,6 +134,7 @@
     height: 5px;
     margin: 10px 0;
     position: relative;
+    user-select: none;
     width: 100%;
   }
 
