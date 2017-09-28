@@ -12,7 +12,6 @@
 </template>
 
 <script>
-
   export default {
     props: [ 'min', 'valueLower', 'valueUpper', 'max' ],
     data: () => ({
@@ -110,7 +109,7 @@
         let diffLower = Math.abs(this.valueLower - valueAtMouseClick);
         let diffUpper = Math.abs(this.valueUpper - valueAtMouseClick);
 
-        if (diffLower < diffUpper) {
+        if (diffLower <= diffUpper) {
           this.valueLower = valueAtMouseClick;
           this.$emit('inputLower', this.valueLower);
         } else if (diffLower > diffUpper) {
